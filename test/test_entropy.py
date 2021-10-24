@@ -38,7 +38,7 @@ def test_evaluate_entropy(evaluate_entropy_data):
     class_labels, entropies = evaluate_entropy_data
     for i in range(len(class_labels)):
         assert (
-            pytest.approx(evaluate_entropy(class_labels[i]), rel=1e-4) == entropies[i]
+            pytest.approx(evaluate_entropy(class_labels[i]), rel=1e-3) == entropies[i]
         ), f"test case {i} failed"
 
 
