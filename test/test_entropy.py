@@ -3,7 +3,7 @@ from typing import Tuple, List
 import pytest
 import numpy as np
 
-from entropy import evaluate_entropy, evaluate_information_gain, information_gain
+from entropy import evaluate_entropy, evaluate_information_gain
 
 
 @pytest.fixture
