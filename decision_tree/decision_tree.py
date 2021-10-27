@@ -2,7 +2,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from entropy import evaluate_entropy
+from entropy import evaluate_entropy, evaluate_information_gain
 
 
 def find_split(x: np.ndarray, y: np.ndarray) -> Tuple[int, float]:
@@ -37,25 +37,15 @@ def find_split(x: np.ndarray, y: np.ndarray) -> Tuple[int, float]:
             if sorted_values[i] == sorted_values[i + 1]:
                 continue
 
-            # Find the split between two sorted values
-            split_value = (sorted_values[i] + sorted_values[i + 1]) / 2.0
-            left_labels = sorted_labels[: i + 1]
-            right_labels = sorted_labels[i + 1 :]
-
             # Calculate the information gain achieved by the split
-            left_entropy = evaluate_entropy(left_labels)
-            right_entropy = evaluate_entropy(right_labels)
-            information_gain = (
-                entropy
-                - (len(left_labels) / len(sorted_labels)) * left_entropy
-                - (len(right_labels) / len(sorted_labels)) * right_entropy
-            )
+            information_gain = evaluate_information_gain(sorted_labels, i + 1, entropy)
 
             # Check if the information gain achieved by this split is better than the previous one
             if information_gain > max_information_gain:
                 max_information_gain = information_gain
                 best_split_attribute = attribute
-                best_split_value = split_value
+                # Find the split between two sorted values
+                best_split_value = (sorted_values[i] + sorted_values[i + 1]) / 2.0
 
     return best_split_attribute, best_split_value
 
