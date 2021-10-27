@@ -282,3 +282,21 @@ def decision_tree_pruning(
         return prune_node(decision_tree, y_training, x_validation, y_validation)
 
     return decision_tree, left_validation_errors + right_validation_errors
+
+
+def calculate_decision_tree_depth(decision_tree: Dict) -> int:
+    """
+    Calculates the maximal depth of a decision tree. The root node is counted as
+    depth one.
+
+    :param decision_tree: The decision tree to calculate the depth for. The format
+        should correspond to the one produced by 'decision_tree_learning'.
+    :return: The maximal depth of the decision tree.
+    """
+
+    if decision_tree["is_leaf"]:
+        return 1
+
+    left_depth = calculate_decision_tree_depth(decision_tree["left"])
+    right_depth = calculate_decision_tree_depth(decision_tree["right"])
+    return max(left_depth, right_depth) + 1
