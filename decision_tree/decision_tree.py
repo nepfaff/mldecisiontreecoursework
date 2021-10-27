@@ -79,13 +79,16 @@ def get_leaf_node_dict(label: int) -> Dict:
     return {"is_leaf": True, "label": label}
 
 
-def decision_tree_learning(x: np.ndarray, y: np.ndarray, depth: int = 1) -> Dict:
+def decision_tree_learning(
+    x: np.ndarray, y: np.ndarray, depth: int = 1
+) -> Tuple[Dict, int]:
     """
     Returns a trained decision tree for the input training data x and y.
 
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
+    :param depth: The depth of the decision tree. The root node is considered depth one.
     :return: A tuple of (decision_tree_dict, depth):
         - decision_tree_dict: A dictionary representing the decision tree that looks as follows:
             {
@@ -109,7 +112,7 @@ def decision_tree_learning(x: np.ndarray, y: np.ndarray, depth: int = 1) -> Dict
                 },
             }
             NOTE: The value of the 'attribute' key correspond to column indices in 'x'.
-        - depth: The depth of the decision tree.
+        - depth: The depth of the decision tree. The root node is considered depth one.
     """
 
     # Check if all examples have the same label

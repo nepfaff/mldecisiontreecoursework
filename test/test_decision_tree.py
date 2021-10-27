@@ -15,7 +15,7 @@ def find_split_datasets() -> Tuple[
         - X: A list of instance attribute data sets ([x1, x2, x3, ...]) that have
             shape (n, k) where n is the number of instances and k the number of attributes.
         - Y: A list of data sets ([y1, y2, y3, ...]) containing the class labels
-            corresponding to x that have shape (n,).
+            corresponding to 'X' that have shape (n,).
         - first_split_attributes: A list containing the first split attributes corresponding to X, Y.
         - first_split_values: A list containing the first split values corresponding to X, Y.
     """
@@ -102,7 +102,7 @@ def decision_tree_learning_datasets() -> Tuple[
         - X: A list of instance attribute data sets ([x1, x2, x3, ...]) that have
             shape (n, k) where n is the number of instances and k the number of attributes.
         - Y: A list of data sets ([y1, y2, y3, ...]) containing the class labels
-            corresponding to x that have shape (n,).
+            corresponding to 'X' that have shape (n,).
         - decision_trees: A list containing the decision trees corresponding to X, Y.
         - decision_tree_depths: A list containing the decision tree depths corresponding to X, Y.
     """
@@ -202,15 +202,15 @@ def decision_tree_predict_datasets() -> Tuple[
     List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray]
 ]:
     """
-    :return: A tuple of (X, Y, first_split_attribute, first_split_value):
+    :return: A tuple of (X_train, Y_train, X_predict, Y_predict):
         - X_train: A list of instance attribute training data sets ([x1, x2, x3, ...]) that have
             shape (n, k) where n is the number of instances and k the number of attributes.
         - Y_train: A list of training data sets ([y1, y2, y3, ...]) containing the class labels
-            corresponding to x that have shape (n,).
+            corresponding to 'X_train' that have shape (n,).
         - X_predict: A list of instance attribute predict data sets ([x1, x2, x3, ...]) that have
             shape (n, k) where n is the number of instances and k the number of attributes.
         - Y_predict: A list of predict data sets ([y1, y2, y3, ...]) containing the class labels
-            corresponding to x that have shape (n,).
+            corresponding to 'X_predict' that have shape (n,).
     """
 
     X_train = [
