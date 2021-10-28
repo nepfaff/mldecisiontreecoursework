@@ -215,7 +215,7 @@ def decision_tree_pruning(
     y_training: np.ndarray,
     x_validation: np.ndarray,
     y_validation: np.ndarray,
-) -> Tuple[Dict, int, int]:
+) -> Tuple[Dict, int]:
     """
     Prunes a decision tree based on improving the validation error.
 
@@ -229,7 +229,7 @@ def decision_tree_pruning(
         the number of attributes.
     :param y_validation: Class labels of shape (m,). These correspond to the instances in
         'x_validation'.
-    :return: A tuple of (pruned_decision_tree, validation_errors, pruned_nodes):
+    :return: A tuple of (pruned_decision_tree, validation_errors):
         - pruned_decision_tree: A pruned version of the input 'decision_tree'.
         - validation_errors: The number of validation errors produced by the pruned tree.
     """
