@@ -14,16 +14,16 @@ def load_txt_data(path: str, attribute_number: int) -> Tuple[np.ndarray, np.ndar
     :return: A tuple of (x, y):
         - x: Contains the attributes. An array of shape (n, k) where n is the
             number of rows in the txt file and k is the 'attribute_number'.
-        - y: Contains the class labels corresponding to x. An array of shape (n,).
+        - y: Contains the mapped class labels corresponding to x. An array of shape (n,).
     """
 
     data = np.loadtxt(path)
 
     # Split data into attributes and labels
     x = data[:, :attribute_number]
-    y = data[:, -1]
+    y_labels = data[:, -1]
 
-    # Change the label type from float to int
-    y = y.astype(np.int)
+    # Map labels to class indexes
+    [_, y] = np.unique(y_labels, return_inverse=True)
 
     return x, y
