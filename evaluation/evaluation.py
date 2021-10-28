@@ -1,26 +1,90 @@
 from typing import Tuple
 import numpy as np
 from numpy.lib.function_base import average
-from decision_tree import decision_tree_learning, decision_tree_predict
+from decision_tree import (
+    decision_tree_learning,
+    decision_tree_predict,
+    decision_tree_pruning,
+)
 from numpy.random import default_rng
-from evaluation import Evaluation
 
 
-# TODO: Define returns
-def nested_cross_validation(x: np.ndarray, y: np.ndarray, folds: int = 10):
+def nested_cross_validation(
+    x: np.ndarray, y: np.ndarray, folds: int = 10
+) -> Evaluation:
     """
     Applies a nested cross validation to a dataset returning evaulation metrics
 
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
-    :return: TODO
+    :return: Instance of a class Evaluation. Evaluation contains:
+        - Confusion matrix  (nparray of floats)
+        - Accuracy (float)
+        - Recall rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
+        - Precision rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
+        - F1 measures per class (nparray of floats). The ith entry is the f2 measure of the ith class.
+
 
 
     """
     # Randomise data & split code into folds (10) segments (of array)
 
     split_indicies = j_fold_split(len(x), folds)
+
+    # Construct a array of confusion matricies containing a confusion matrix for each test set
+    confusion_matricies = np.empty((folds,))
+
+    for i, fold in enumerate(split_indicies):
+        # Assign test and train data
+        test_indicies = fold
+        train_validation_indicies = (
+            np.delete(split_indicies, test_indicies, axis=0)
+        ).flatten()
+
+        min_validation_error = float("inf")
+        best_pruned_decision_tree = dict()
+
+        for nested_fold in train_validation_indicies:
+            validation_indicies = nested_fold
+            train_indicies = (
+                np.delete(train_validation_indicies, validation_indicies, axis=0)
+            ).flatten()
+
+            # Build tree using train dataset
+            (decision_tree, _) = decision_tree_learning(
+                x[train_indicies], y[train_indicies]
+            )
+
+            # Prune tree using validation dataset
+            pruned_decision_tree, validation_error, _ = decision_tree_pruning(
+                decision_tree,
+                x[train_indicies],
+                y[train_indicies],
+                x[validation_indicies],
+                y[validation_indicies],
+            )
+            # TODO: Compare and store validation error
+            if validation_error < min_validation_error:
+                min_validation_error = validation_error
+                best_pruned_decision_tree = pruned_decision_tree
+
+        # Run decision tree on test data
+        y_predicted = decision_tree_predict(best_pruned_decision_tree, x[test_indicies])
+
+        # Evaluate tree to obtain & store the confusion Matrix using test data
+
+        confusion_matricies[i] = construct_confusion_matrix(
+            y[test_indicies], y_predicted
+        )
+
+    # Obtain average confusion Matrix
+    average_confusion_matrix = np.sum(confusion_matricies, axis=0) / folds
+
+    # Obtain & return other evaluation metrics
+    evaluated_algorithm = Evaluation(average_confusion_matrix)
+
+    return evaluated_algorithm
 
 
 # loop through array
@@ -58,21 +122,21 @@ def cross_validation(x: np.ndarray, y: np.ndarray, folds: int = 10) -> Evaluatio
 
     split_indicies = j_fold_split(len(x), folds)
 
-    # Construct a confusion matrix for each fold
+    # Construct a array of confusion matricies containing a confusion matrix for each test set
     confusion_matricies = np.empty((folds,))
 
     for i, fold in enumerate(split_indicies):
         # Assign test and train data
         test_indicies = fold
-        train_indicies = (np.delete(split_indicies, fold, axis=0)).flatten()
+        train_indicies = (np.delete(split_indicies, test_indicies, axis=0)).flatten()
 
-        # Build tree using ttrain dataset
-        (deciscion_tree_dict, _) = decision_tree_learning(
+        # Build tree using train dataset
+        (decision_tree, _) = decision_tree_learning(
             x[train_indicies], y[train_indicies]
         )
 
         # Run decision tree on test data
-        y_predicted = decision_tree_predict(deciscion_tree_dict, x[test_indicies])
+        y_predicted = decision_tree_predict(decision_tree, x[test_indicies])
 
         # Evaluate tree to obtain & store the confusion Matrix using test data
 
