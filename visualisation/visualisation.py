@@ -1,39 +1,85 @@
 import matplotlib.pyplot as plt
+from typing import Literal, Tuple
+import os
 
 
-# Creating a line between nodes
-def joinNodes(x1, y1, x2, y2, ax):
+def joinNodes(x1: float, y1: float, x2: float, y2: float, ax: plt.Axes):
+    """
+    Creats a line between nodes
+
+    :param x1: x-axis location of first node.
+    :param y1: y-axis location of first node.
+    :param x2: x-axis location of second node.
+    :param y2: y-axis location of second node.
+    :param ax: contains figure elements.
+    :return: No return
+    """
     ax.plot([x1, x2], [y1, y2])
 
 
-# Function that plots Nodes recursivly
-def plotNode(x, y, Node, ax, distance):
+def plotNode(
+    x: float,
+    y: float,
+    Node: dict,
+    ax: plt.Axes,
+    division_size: float,
+    distance: float = 1000,
+) -> Tuple[int, int, int]:
+    """
+    Recursivly plots nodes on the figure, with description of the node
+
+    :param x: x-axis location of node.
+    :param y: y-axis location of node.
+    :param Node: dict containing node information.
+    :param ax: contains figure elements.
+    :param division_size: factor that controls the size of future node distances.
+    :param distance: distance between current node and children nodes.
+    :return: No return
+    """
 
     # Defining variables for creating the range of the figure
-    xL_left, xL_right, xR_left, xR_right, y_left, y_right = 0, 0, 0, 0, 0, 0
-
-    # Creating text visible for each node
-    boxText = "[X" + str(Node["attribute"]) + " < " + str(Node["value"]) + "]"
+    xL_left, xR_right, y_left, y_right = 0, 0, 0, 0
 
     # Checking to see if leaf node
     if Node["is_leaf"] == True:
-        boxText = "leaf: " + str(Node.label)
+        box_text = f'leaf: {Node["label"]}'
 
-    # Plotting node with a box around it
-    ax.text(x, y, boxText, color="red", bbox=dict(facecolor="white", edgecolor="red"))
-
-    # Checking for left and right nodes and recusivly calling function
-    if Node["left"] != None:
-        xL_left, xL_right, y_left = plotNode(
-            (x - distance), (y - 5), Node["left"], ax, (distance / 2)
+        # Plotting node with a box around it
+        ax.text(
+            x, y, box_text, color="red", bbox=dict(facecolor="white", edgecolor="red")
         )
-        joinNodes(x, y, (x - distance), (y - 5), ax)
 
-    if Node["right"] != None:
-        xR_left, xR_right, y_right = plotNode(
-            (x + distance), (y - 5), Node["right"], ax, (distance / 2)
+    else:
+        # Creating text visible for each node
+        box_text = f'[X{Node["attribute"]} < {Node["value"]}]'
+
+        # Plotting node with a box around it
+        ax.text(
+            x, y, box_text, color="red", bbox=dict(facecolor="white", edgecolor="red")
         )
-        joinNodes(x, y, (x + distance), (y - 5), ax)
+
+        # Checking for left and right nodes and recusivly calling function
+        if Node["left"] != None:
+            xL_left, _, y_left = plotNode(
+                (x - distance),
+                (y - 5),
+                Node["left"],
+                ax,
+                division_size,
+                (distance / division_size),
+            )
+            joinNodes(x, y, (x - distance), (y - 5), ax)
+
+        if Node["right"] != None:
+            _, xR_right, y_right = plotNode(
+                (x + distance),
+                (y - 5),
+                Node["right"],
+                ax,
+                division_size,
+                (distance / division_size),
+            )
+            joinNodes(x, y, (x + distance), (y - 5), ax)
 
     # Building boarders for figure
 
@@ -44,15 +90,23 @@ def plotNode(x, y, Node, ax, distance):
     return xL, xR, min(y_left, y_right)
 
 
-# Function that takes the top node of the tree and plots the whole tree
-def plotTree(Tree):
+def plotTree(Tree: dict, tree_name: Literal = "tree", division_size: int = 1.7):
+    """
+    Function that takes the top node of the tree and plots the whole tree
+
+    :param Tree: dict containing tree.
+    :param tree_name: name of .png file
+    :param division_size: tuning parameter to ensure tree looks correct visualy via spacing between nodes, value must be greater than 1
+    :return: No return
+    :result: .png file named tree.png, found in visualisation folder.
+    """
     # Defining figure information
     start_location = [0, 0]
-    fig, ax = plt.subplots(figsize=(12, 6))
+    _, ax = plt.subplots(figsize=(50, 50))
 
     # Calling recursive node plotting software
     x_left, x_right, y_depth = plotNode(
-        start_location[0], start_location[1], Tree, ax, 50
+        start_location[0], start_location[1], Tree, ax, division_size
     )
 
     # Assinging figure boarders and information
@@ -68,8 +122,10 @@ def plotTree(Tree):
     plt.xlim([x_left, x_right])
     plt.ylim([5, y_depth])
     plt.gca().invert_yaxis()
-    ax.axis("off")
+    # ax.axis("off")
     plt.show()
-
     #   Saving figure to file
-    plt.savefig("tree.png")
+    if not os.path.exists("figures"):
+        os.makedirs("figures")
+
+    plt.savefig(f"figures/{tree_name}.png")
