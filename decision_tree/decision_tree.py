@@ -148,10 +148,10 @@ def decision_tree_predict(decision_tree: Dict, x: np.ndarray) -> np.ndarray:
         trained on data of the same format as 'x'.
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
-    :return: The predicted labels corresponding to 'x' of shape (n,).
+    :return: The predicted labels corresponding to 'x' of shape (n,) of type int.
     """
 
-    y = np.empty(len(x))
+    y = np.empty(len(x), dtype=int)
 
     # Pass each instance through the decision tree
     for i, instance in enumerate(x):
@@ -195,9 +195,11 @@ def prune_node(
     validation_errors_pre_pruning = np.sum(y_predict != y_validation)
 
     # Find the majority class label based on the training data
-    labels, counts = np.unique(y_training)
-    # 'labels' can be a list or an integer
-    majority_label = labels[np.argmax(counts)] if isinstance(labels, list) else labels
+    labels, counts = np.unique(y_training, return_counts=True)
+    # 'labels' can be a np.ndarray or an integer
+    majority_label = (
+        labels[np.argmax(counts)] if isinstance(labels, np.ndarray) else labels
+    )
 
     # Compute the number of validation errors after pruning
     validation_errors_post_pruning = np.sum(majority_label != y_validation)
