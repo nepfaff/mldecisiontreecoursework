@@ -120,6 +120,19 @@ def decision_tree_learning(
         # Return a leaf node
         return get_leaf_node_dict(y[0]), depth
 
+    # Check for identical attribute values, different label edge case
+    # It is not possible to continue the tree creation
+    if np.all(x == x[0]):
+        # Find the majority class label
+        labels, counts = np.unique(y, return_counts=True)
+        # 'labels' can be a np.ndarray or an integer
+        majority_label = (
+            labels[np.argmax(counts)] if isinstance(labels, np.ndarray) else labels
+        )
+
+        # Return a leaf node with the value of the majority label
+        return get_leaf_node_dict(majority_label), depth
+
     # Find best split
     split_attribute, split_value = find_split(x, y)
 
