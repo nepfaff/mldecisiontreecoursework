@@ -131,9 +131,37 @@ def decision_tree_learning_datasets() -> Tuple[
                 [6, 3],
                 [6, 5],
             ]
-        )
+        ),
+        np.array(
+            [
+                [1, 1],
+                [1, 2],
+                [1, 4],
+                [1, 5],
+                [2, 1],
+                [2, 3],
+                [2, 4],
+                [3, 1],
+                [3, 2],
+                [3, 2],
+                [3, 4],
+                [3, 5],
+                [4, 2],
+                [4, 3],
+                [4, 5],
+                [5, 1],
+                [5, 4],
+                [5, 5],
+                [6, 2],
+                [6, 3],
+                [6, 5],
+            ]
+        ),  # Identical attribute values, different label edge case
     ]
-    Y = [np.array([1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2])]
+    Y = [
+        np.array([1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]),
+        np.array([1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]),
+    ]
     decision_trees = [
         {
             "is_leaf": False,
@@ -177,9 +205,58 @@ def decision_tree_learning_datasets() -> Tuple[
                 },
             },
             "right": {"is_leaf": True, "label": 2},
-        }
+        },
+        {
+            "is_leaf": False,
+            "attribute": 0,
+            "value": 4.5,
+            "left": {
+                "is_leaf": False,
+                "attribute": 0,
+                "value": 1.5,
+                "left": {"is_leaf": True, "label": 1},
+                "right": {
+                    "is_leaf": False,
+                    "attribute": 1,
+                    "value": 4.5,
+                    "left": {
+                        "is_leaf": False,
+                        "attribute": 0,
+                        "value": 2.5,
+                        "left": {
+                            "is_leaf": False,
+                            "attribute": 1,
+                            "value": 2.0,
+                            "left": {"is_leaf": True, "label": 2},
+                            "right": {"is_leaf": True, "label": 1},
+                        },
+                        "right": {
+                            "is_leaf": False,
+                            "attribute": 0,
+                            "value": 3.5,
+                            "left": {
+                                "is_leaf": False,
+                                "attribute": 1,
+                                "value": 1.5,
+                                "left": {"is_leaf": True, "label": 2},
+                                "right": {
+                                    "is_leaf": False,
+                                    "attribute": 1,
+                                    "value": 3.0,
+                                    "left": {"is_leaf": True, "label": 1},
+                                    "right": {"is_leaf": True, "label": 2},
+                                },
+                            },
+                            "right": {"is_leaf": True, "label": 2},
+                        },
+                    },
+                    "right": {"is_leaf": True, "label": 1},
+                },
+            },
+            "right": {"is_leaf": True, "label": 2},
+        },
     ]
-    decision_tree_depths = [8]
+    decision_tree_depths = [8, 8]
 
     return X, Y, decision_trees, decision_tree_depths
 
