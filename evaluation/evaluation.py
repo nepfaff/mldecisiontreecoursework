@@ -9,7 +9,7 @@ from evaluation.evaluation_metrics import Evaluation
 
 
 def nested_cross_validation(
-    x: np.ndarray, y: np.ndarray, folds: int = 10
+    x: np.ndarray, y: np.ndarray, folds: int = 10, random_generator=default_rng()
 ) -> Evaluation:
     """
     Applies a nested cross validation to a dataset returning evaulation metrics
@@ -18,6 +18,7 @@ def nested_cross_validation(
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
     :param folds: number of folds that the dataset is divided in.
+    :param random_generator (np.random.Generator): A random generator
 
     :return: Instance of a class Evaluation. Evaluation contains:
         - Confusion matrix  (nparray of floats)
@@ -86,10 +87,7 @@ def nested_cross_validation(
 
 
 def cross_validation(
-    x: np.ndarray,
-    y: np.ndarray,
-    folds: int = 10,
-    class_labels: np.array = np.array([0, 1, 2, 3]),
+    x: np.ndarray, y: np.ndarray, folds: int = 10, random_generator=default_rng()
 ) -> Evaluation:
     """
     Applies a cross validation to a dataset returning average evaulation metrics
@@ -97,17 +95,20 @@ def cross_validation(
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
+    :param folds: number of folds that the dataset is divided in.
+    :param random_generator (np.random.Generator): A random generator
+
     :return: Instance of a class Evaluation. Evaluation contains:
         - Confusion matrix  (nparray of floats)
         - Accuracy (float)
         - Recall rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
         - Precision rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
         - F1 measures per class (nparray of floats). The ith entry is the f2 measure of the ith class.
-
     """
     # Randomise data & split code into j folds
-
     split_indices = j_fold_split(len(x), folds)
+
+    class_labels = np.unique(y)
 
     # Construct a array of confusion matrices containing a confusion matrix for each test set
     confusion_matrices = np.empty((folds, len(class_labels), len(class_labels)))
@@ -130,7 +131,7 @@ def cross_validation(
         )
 
     # Obtain average confusion Matrix
-    average_confusion_matrix = np.sum(confusion_matrices, axis=0) / folds
+    average_confusion_matrix = np.mean(confusion_matrices)
 
     # Obtain & return other evaluation metrics
     evaluated_algorithm = Evaluation(average_confusion_matrix)
@@ -145,6 +146,7 @@ def j_fold_split(
     Randomises indices and splits them into j folds
     :param n_instances: Number of instances of the dataset.
     :param j: Number of folds for splitting.
+    :param random_generator (np.random.Generator): A random generator
     :return: an nparray of size j. Each element in the array is a numpy array giving the indices of the instance in that fold.
 
     """
@@ -158,17 +160,18 @@ def j_fold_split(
     return split_indices
 
 
-def construct_confusion_matrix(y_gold, y_prediction, class_labels=None):
-    """Compute the confusion matrix.
+def construct_confusion_matrix(y_gold, y_prediction, class_labels):
+    """
+    Compute the confusion matrix.
 
     Args:
-        y_gold (np.ndarray): the correct ground truth/gold standard labels
-        y_prediction (np.ndarray): the predicted labels
-        class_labels (np.ndarray): a list of unique class labels.
+    :param: y_gold (np.ndarray): the correct ground truth/gold standard labels
+    :param: y_prediction (np.ndarray): the predicted labels
+    :param: class_labels (np.ndarray): a list of unique class labels.
 
-    Returns:
-        np.array : shape (C, C), where C is the number of classes.
-                   Rows are ground truth per class, columns are predictions
+    :return: np.array : shape (C, C), where C is the number of classes. Rows are ground truth per class,
+     columns are predictions
+
     """
 
     confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int)
