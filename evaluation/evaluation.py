@@ -7,11 +7,12 @@ from decision_tree import (
     decision_tree_pruning,
 )
 from numpy.random import default_rng
+import evaluation_metrics
 
 
 def nested_cross_validation(
     x: np.ndarray, y: np.ndarray, folds: int = 10
-) -> Evaluation:
+) -> evaluation_metrics.Evaluation:
     """
     Applies a nested cross validation to a dataset returning evaulation metrics
 
@@ -33,7 +34,7 @@ def nested_cross_validation(
     split_indicies = j_fold_split(len(x), folds)
 
     # Construct a array of confusion matricies containing a confusion matrix for each test set
-    confusion_matricies = np.empty((folds,))
+    average_pruned_confusion_matricies = np.empty((folds,))
 
     for i, fold in enumerate(split_indicies):
         # Assign test and train data
@@ -42,10 +43,9 @@ def nested_cross_validation(
             np.delete(split_indicies, test_indicies, axis=0)
         ).flatten()
 
-        min_validation_error = float("inf")
-        best_pruned_decision_tree = dict()
+        pruned_confusion_matricies = np.empty((9,))
 
-        for nested_fold in train_validation_indicies:
+        for nested_i, nested_fold in enumerate(train_validation_indicies):
             validation_indicies = nested_fold
             train_indicies = (
                 np.delete(train_validation_indicies, validation_indicies, axis=0)
@@ -57,53 +57,42 @@ def nested_cross_validation(
             )
 
             # Prune tree using validation dataset
-            pruned_decision_tree, validation_error, _ = decision_tree_pruning(
+            pruned_decision_tree, _, _ = decision_tree_pruning(
                 decision_tree,
                 x[train_indicies],
                 y[train_indicies],
                 x[validation_indicies],
                 y[validation_indicies],
             )
-            # TODO: Compare and store validation error
-            if validation_error < min_validation_error:
-                min_validation_error = validation_error
-                best_pruned_decision_tree = pruned_decision_tree
 
-        # Run decision tree on test data
-        y_predicted = decision_tree_predict(best_pruned_decision_tree, x[test_indicies])
+            # Run decision tree on test data
+            y_predicted = decision_tree_predict(pruned_decision_tree, x[test_indicies])
 
-        # Evaluate tree to obtain & store the confusion Matrix using test data
+            # Evaluate tree to obtain & store the confusion Matrix using test data
+            pruned_confusion_matricies[nested_i] = construct_confusion_matrix(
+                y[test_indicies], y_predicted
+            )
 
-        confusion_matricies[i] = construct_confusion_matrix(
-            y[test_indicies], y_predicted
+        # TODO: Obtain average confusion matrix from pruned inner loop of 9 confusion matricies
+
+        average_pruned_confusion_matricies[i] = (
+            np.sum(pruned_confusion_matricies, axis=0) / folds
         )
 
     # Obtain average confusion Matrix
-    average_confusion_matrix = np.sum(confusion_matricies, axis=0) / folds
+    average_confusion_matrix = (
+        np.sum(average_pruned_confusion_matricies, axis=0) / folds
+    )
 
     # Obtain & return other evaluation metrics
-    evaluated_algorithm = Evaluation(average_confusion_matrix)
+    evaluated_algorithm = evaluation_metrics.Evaluation(average_confusion_matrix)
 
     return evaluated_algorithm
 
 
-# loop through array
-# TODO: assign x_train [9/10] & x_test [1/10]
-# loop through train part
-# TODO: build tree using dataset(datatrain(datatrain))
-# TODO: prune tree
-# TODO: evaluate tree using dataset(datatrain(datavalidation))
-
-# TODO: Compare with other loop iterations & store best tree & evaluation details
-
-# TODO: Evaluate tree
-# TODO: Obtain & store confusion Matrix
-
-# TODO: Obtain average confusion Matrix
-# TODO: Obtain & return other evaluation metrics
-
-
-def cross_validation(x: np.ndarray, y: np.ndarray, folds: int = 10) -> Evaluation:
+def cross_validation(
+    x: np.ndarray, y: np.ndarray, folds: int = 10
+) -> evaluation_metrics.Evaluation:
     """
     Applies a cross validation to a dataset returning average evaulation metrics
 
@@ -148,7 +137,7 @@ def cross_validation(x: np.ndarray, y: np.ndarray, folds: int = 10) -> Evaluatio
     average_confusion_matrix = np.sum(confusion_matricies, axis=0) / folds
 
     # Obtain & return other evaluation metrics
-    evaluated_algorithm = Evaluation(average_confusion_matrix)
+    evaluated_algorithm = evaluation_metrics.Evaluation(average_confusion_matrix)
 
     return evaluated_algorithm
 
