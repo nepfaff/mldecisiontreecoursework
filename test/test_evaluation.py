@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core.numeric import NaN
 from evaluation import cross_validation, nested_cross_validation, Evaluation
 
 
@@ -31,7 +30,7 @@ x = np.array(
 y_labels = np.array([1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4])
 
 # Map labels to class indexes
-[_, y] = np.unique(y_labels, return_inverse=True)
+(_, y) = np.unique(y_labels, return_inverse=True)
 
 
 # Testing cross validaiton

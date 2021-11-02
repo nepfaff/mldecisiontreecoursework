@@ -1,20 +1,15 @@
-from typing import Tuple
 import numpy as np
-from numpy.lib.function_base import average
+from numpy.random import default_rng
 from decision_tree import (
     decision_tree_learning,
     decision_tree_predict,
     decision_tree_pruning,
 )
-from numpy.random import default_rng
 from evaluation.evaluation_metrics import Evaluation
 
 
 def nested_cross_validation(
-    x: np.ndarray,
-    y: np.ndarray,
-    folds: int = 10,
-    class_labels: np.array = np.array([0, 1, 2, 3]),
+    x: np.ndarray, y: np.ndarray, folds: int = 10
 ) -> Evaluation:
     """
     Applies a nested cross validation to a dataset returning evaulation metrics
@@ -22,22 +17,22 @@ def nested_cross_validation(
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
+    :param folds: number of folds that the dataset is divided in.
+
     :return: Instance of a class Evaluation. Evaluation contains:
         - Confusion matrix  (nparray of floats)
         - Accuracy (float)
         - Recall rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
         - Precision rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
         - F1 measures per class (nparray of floats). The ith entry is the f2 measure of the ith class.
-
-
-
     """
     # Randomise data & split code into folds (10) segments (of array)
 
     split_indices = j_fold_split(len(x), folds)
+    class_labels = np.unique(y)
 
-    # Construct a array of confusion matricies containing a confusion matrix for each test set
-    average_pruned_confusion_matricies = np.empty(
+    # Construct a array of confusion matrices containing a confusion matrix for each test set
+    average_pruned_confusion_matrices = np.empty(
         (folds, len(class_labels), len(class_labels))
     )
 
@@ -46,13 +41,15 @@ def nested_cross_validation(
         test_indices = fold
         train_validation_indices = np.hstack(split_indices[:i] + split_indices[i + 1 :])
 
-        pruned_confusion_matricies = np.empty((9, len(class_labels), len(class_labels)))
+        pruned_confusion_matrices = np.empty(
+            (len(train_validation_indices), len(class_labels), len(class_labels))
+        )
 
         for nested_i, nested_fold in enumerate(train_validation_indices):
             validation_indices = nested_fold
-            train_indices = (
-                np.delete(train_validation_indices, validation_indices, axis=0)
-            ).flatten()
+            train_indices = np.hstack(
+                train_validation_indices[:nested_i] + train_validation_indices[i + 1 :]
+            )
 
             # Build tree using train dataset
             (decision_tree, _) = decision_tree_learning(
@@ -72,20 +69,15 @@ def nested_cross_validation(
             y_predicted = decision_tree_predict(pruned_decision_tree, x[test_indices])
 
             # Evaluate tree to obtain & store the confusion Matrix using test data
-            pruned_confusion_matricies[nested_i] = construct_confusion_matrix(
+            pruned_confusion_matrices[nested_i] = construct_confusion_matrix(
                 y[test_indices], y_predicted
             )
 
-        # Obtain average confusion matrix from pruned inner loop of 9 confusion matricies
-
-        average_pruned_confusion_matricies[i] = (
-            np.sum(pruned_confusion_matricies, axis=0) / folds
-        )
+        # Obtain average confusion matrix from pruned inner loop of 9 confusion matrices
+        average_pruned_confusion_matrices[i] = np.mean(pruned_confusion_matrices)
 
     # Obtain average confusion Matrix
-    average_confusion_matrix = (
-        np.sum(average_pruned_confusion_matricies, axis=0) / folds
-    )
+    average_confusion_matrix = np.mean(average_pruned_confusion_matrices)
 
     # Obtain & return other evaluation metrics
     evaluated_algorithm = Evaluation(average_confusion_matrix)
@@ -117,8 +109,8 @@ def cross_validation(
 
     split_indices = j_fold_split(len(x), folds)
 
-    # Construct a array of confusion matricies containing a confusion matrix for each test set
-    confusion_matricies = np.empty((folds, len(class_labels), len(class_labels)))
+    # Construct a array of confusion matrices containing a confusion matrix for each test set
+    confusion_matrices = np.empty((folds, len(class_labels), len(class_labels)))
 
     for i, fold in enumerate(split_indices):
         # Assign test and train data
@@ -133,12 +125,12 @@ def cross_validation(
 
         # Evaluate tree to obtain & store the confusion Matrix using test data
 
-        confusion_matricies[i] = construct_confusion_matrix(
+        confusion_matrices[i] = construct_confusion_matrix(
             y[test_indices], y_predicted, class_labels
         )
 
     # Obtain average confusion Matrix
-    average_confusion_matrix = np.sum(confusion_matricies, axis=0) / folds
+    average_confusion_matrix = np.sum(confusion_matrices, axis=0) / folds
 
     # Obtain & return other evaluation metrics
     evaluated_algorithm = Evaluation(average_confusion_matrix)
