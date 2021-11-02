@@ -7,12 +7,15 @@ from decision_tree import (
     decision_tree_pruning,
 )
 from numpy.random import default_rng
-import evaluation_metrics
+from evaluation.evaluation_metrics import Evaluation
 
 
 def nested_cross_validation(
-    x: np.ndarray, y: np.ndarray, folds: int = 10
-) -> evaluation_metrics.Evaluation:
+    x: np.ndarray,
+    y: np.ndarray,
+    folds: int = 10,
+    class_labels: np.array = np.array([0, 1, 2, 3]),
+) -> Evaluation:
     """
     Applies a nested cross validation to a dataset returning evaulation metrics
 
@@ -31,49 +34,49 @@ def nested_cross_validation(
     """
     # Randomise data & split code into folds (10) segments (of array)
 
-    split_indicies = j_fold_split(len(x), folds)
+    split_indices = j_fold_split(len(x), folds)
 
     # Construct a array of confusion matricies containing a confusion matrix for each test set
-    average_pruned_confusion_matricies = np.empty((folds,))
+    average_pruned_confusion_matricies = np.empty(
+        (folds, len(class_labels), len(class_labels))
+    )
 
-    for i, fold in enumerate(split_indicies):
+    for i, fold in enumerate(split_indices):
         # Assign test and train data
-        test_indicies = fold
-        train_validation_indicies = (
-            np.delete(split_indicies, test_indicies, axis=0)
-        ).flatten()
+        test_indices = fold
+        train_validation_indices = np.hstack(split_indices[:i] + split_indices[i + 1 :])
 
-        pruned_confusion_matricies = np.empty((9,))
+        pruned_confusion_matricies = np.empty((9, len(class_labels), len(class_labels)))
 
-        for nested_i, nested_fold in enumerate(train_validation_indicies):
-            validation_indicies = nested_fold
-            train_indicies = (
-                np.delete(train_validation_indicies, validation_indicies, axis=0)
+        for nested_i, nested_fold in enumerate(train_validation_indices):
+            validation_indices = nested_fold
+            train_indices = (
+                np.delete(train_validation_indices, validation_indices, axis=0)
             ).flatten()
 
             # Build tree using train dataset
             (decision_tree, _) = decision_tree_learning(
-                x[train_indicies], y[train_indicies]
+                x[train_indices], y[train_indices]
             )
 
             # Prune tree using validation dataset
             pruned_decision_tree, _, _ = decision_tree_pruning(
                 decision_tree,
-                x[train_indicies],
-                y[train_indicies],
-                x[validation_indicies],
-                y[validation_indicies],
+                x[train_indices],
+                y[train_indices],
+                x[validation_indices],
+                y[validation_indices],
             )
 
             # Run decision tree on test data
-            y_predicted = decision_tree_predict(pruned_decision_tree, x[test_indicies])
+            y_predicted = decision_tree_predict(pruned_decision_tree, x[test_indices])
 
             # Evaluate tree to obtain & store the confusion Matrix using test data
             pruned_confusion_matricies[nested_i] = construct_confusion_matrix(
-                y[test_indicies], y_predicted
+                y[test_indices], y_predicted
             )
 
-        # TODO: Obtain average confusion matrix from pruned inner loop of 9 confusion matricies
+        # Obtain average confusion matrix from pruned inner loop of 9 confusion matricies
 
         average_pruned_confusion_matricies[i] = (
             np.sum(pruned_confusion_matricies, axis=0) / folds
@@ -85,14 +88,17 @@ def nested_cross_validation(
     )
 
     # Obtain & return other evaluation metrics
-    evaluated_algorithm = evaluation_metrics.Evaluation(average_confusion_matrix)
+    evaluated_algorithm = Evaluation(average_confusion_matrix)
 
     return evaluated_algorithm
 
 
 def cross_validation(
-    x: np.ndarray, y: np.ndarray, folds: int = 10
-) -> evaluation_metrics.Evaluation:
+    x: np.ndarray,
+    y: np.ndarray,
+    folds: int = 10,
+    class_labels: np.array = np.array([0, 1, 2, 3]),
+) -> Evaluation:
     """
     Applies a cross validation to a dataset returning average evaulation metrics
 
@@ -109,35 +115,33 @@ def cross_validation(
     """
     # Randomise data & split code into j folds
 
-    split_indicies = j_fold_split(len(x), folds)
+    split_indices = j_fold_split(len(x), folds)
 
     # Construct a array of confusion matricies containing a confusion matrix for each test set
-    confusion_matricies = np.empty((folds,))
+    confusion_matricies = np.empty((folds, len(class_labels), len(class_labels)))
 
-    for i, fold in enumerate(split_indicies):
+    for i, fold in enumerate(split_indices):
         # Assign test and train data
-        test_indicies = fold
-        train_indicies = (np.delete(split_indicies, test_indicies, axis=0)).flatten()
+        test_indices = fold
+        train_indices = np.hstack(split_indices[:i] + split_indices[i + 1 :])
 
         # Build tree using train dataset
-        (decision_tree, _) = decision_tree_learning(
-            x[train_indicies], y[train_indicies]
-        )
+        (decision_tree, _) = decision_tree_learning(x[train_indices], y[train_indices])
 
         # Run decision tree on test data
-        y_predicted = decision_tree_predict(decision_tree, x[test_indicies])
+        y_predicted = decision_tree_predict(decision_tree, x[test_indices])
 
         # Evaluate tree to obtain & store the confusion Matrix using test data
 
         confusion_matricies[i] = construct_confusion_matrix(
-            y[test_indicies], y_predicted
+            y[test_indices], y_predicted, class_labels
         )
 
     # Obtain average confusion Matrix
     average_confusion_matrix = np.sum(confusion_matricies, axis=0) / folds
 
     # Obtain & return other evaluation metrics
-    evaluated_algorithm = evaluation_metrics.Evaluation(average_confusion_matrix)
+    evaluated_algorithm = Evaluation(average_confusion_matrix)
 
     return evaluated_algorithm
 
@@ -146,10 +150,10 @@ def j_fold_split(
     n_instances: int, j: int = 10, random_generator=default_rng()
 ) -> np.ndarray:
     """
-    Randomises indicies and splits them into j folds
+    Randomises indices and splits them into j folds
     :param n_instances: Number of instances of the dataset.
     :param j: Number of folds for splitting.
-    :return: an nparray of size j. Each element in the array is a numpy array giving the indicies of the instance in that fold.
+    :return: an nparray of size j. Each element in the array is a numpy array giving the indices of the instance in that fold.
 
     """
 
@@ -169,22 +173,28 @@ def construct_confusion_matrix(y_gold, y_prediction, class_labels=None):
         y_gold (np.ndarray): the correct ground truth/gold standard labels
         y_prediction (np.ndarray): the predicted labels
         class_labels (np.ndarray): a list of unique class labels.
-                               Defaults to the union of y_gold and y_prediction.
 
     Returns:
         np.array : shape (C, C), where C is the number of classes.
                    Rows are ground truth per class, columns are predictions
     """
 
-    # if no class_labels are given, we obtain the set of unique class labels from
-    # the union of the ground truth annotation and the prediction
-    if not class_labels:
-        class_labels = np.unique(np.concatenate((y_gold, y_prediction)))
-
     confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int)
 
-    for gold, predicted in zip(y_gold, y_prediction):
-        # TODO: Impliment mapping to remove '-1's
-        confusion[gold - 1, predicted - 1] += 1
+    for (i, label) in enumerate(class_labels):
+        # get predictions where the ground truth is the current class label
+        indices = y_gold == label
+        gold = y_gold[indices]
+        predictions = y_prediction[indices]
+
+        # quick way to get the counts per label
+        (unique_labels, counts) = np.unique(predictions, return_counts=True)
+
+        # convert the counts to a dictionary
+        frequency_dict = dict(zip(unique_labels, counts))
+
+        # fill up the confusion matrix for the current row
+        for (j, class_label) in enumerate(class_labels):
+            confusion[i, j] = frequency_dict.get(class_label, 0)
 
     return confusion

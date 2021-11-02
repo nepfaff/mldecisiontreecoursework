@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.core.numeric import NaN
 
 
 class Evaluation:
@@ -30,10 +31,9 @@ class Evaluation:
             )
         )
 
-        column_sum = np.sum(self.confusion_matrix, axis=1)
+        column_sum = np.sum(self.confusion_matrix, axis=0)
 
         for (i, row) in enumerate(self.confusion_matrix):
-            assert column_sum[i] != 0
             precisions[i] = self.confusion_matrix[i, i] / column_sum[i]
 
         return precisions
@@ -47,10 +47,9 @@ class Evaluation:
             )
         )
 
-        row_sum = np.sum(self.confusion_matrix, axis=0)
+        row_sum = np.sum(self.confusion_matrix, axis=1)
 
         for (i, row) in enumerate(self.confusion_matrix):
-            assert row_sum[i] != 0
             recalls[i] = self.confusion_matrix[i, i] / row_sum[i]
 
         return recalls
