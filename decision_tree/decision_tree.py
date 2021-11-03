@@ -235,7 +235,7 @@ def decision_tree_pruning(
     Prunes a decision tree based on improving the validation error.
 
     :param decision_tree: A decision tree as produced by 'decision_tree_learning' when
-        trained on data of the same format as 'x_validation'.
+        trained using 'x_training' and 'y_training'.
     :param x_trianing: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
     :param y_training: Class labels of shape (n,). These correspond to the instances in
