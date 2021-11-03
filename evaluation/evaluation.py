@@ -58,7 +58,7 @@ def nested_cross_validation(
             )
 
             # Prune tree using validation dataset
-            pruned_decision_tree, _, _ = decision_tree_pruning(
+            pruned_decision_tree, _ = decision_tree_pruning(
                 decision_tree,
                 x[train_indices],
                 y[train_indices],
@@ -164,32 +164,35 @@ def construct_confusion_matrix(y_gold, y_prediction, class_labels):
     """
     Compute the confusion matrix.
 
-    Args:
-    :param: y_gold (np.ndarray): the correct ground truth/gold standard labels
-    :param: y_prediction (np.ndarray): the predicted labels
-    :param: class_labels (np.ndarray): a list of unique class labels.
+    :param: y_gold : np.ndarray of shape (n,) the correct ground truth/gold standard labels
+    :param: y_prediction : np.ndarray of shape (n,) the predicted labels
+    :param: class_labels : np.ndarray of unique class labels.
 
-    :return: np.array : shape (C, C), where C is the number of classes. Rows are ground truth per class,
+    :return: np.array : np.ndarray shape (C, C), where C is the number of classes. Rows are ground truth per class,
      columns are predictions
 
     """
 
     confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int)
 
-    for (i, label) in enumerate(class_labels):
-        # get predictions where the ground truth is the current class label
-        indices = y_gold == label
-        gold = y_gold[indices]
-        predictions = y_prediction[indices]
+    # construct confusion matrix
+    for gold, predicted in zip(y_gold, y_prediction):
+        confusion[gold, predicted] += 1
 
-        # quick way to get the counts per label
-        (unique_labels, counts) = np.unique(predictions, return_counts=True)
+    # for (i, label) in enumerate(class_labels):
+    #     # get predictions where the ground truth is the current class label
+    #     indices = y_gold == label
+    #     gold = y_gold[indices]
+    #     predictions = y_prediction[indices]
 
-        # convert the counts to a dictionary
-        frequency_dict = dict(zip(unique_labels, counts))
+    #     # quick way to get the counts per label
+    #     (unique_labels, counts) = np.unique(predictions, return_counts=True)
 
-        # fill up the confusion matrix for the current row
-        for (j, class_label) in enumerate(class_labels):
-            confusion[i, j] = frequency_dict.get(class_label, 0)
+    #     # convert the counts to a dictionary
+    #     frequency_dict = dict(zip(unique_labels, counts))
+
+    #     # fill up the confusion matrix for the current row
+    #     for (j, class_label) in enumerate(class_labels):
+    #         confusion[i, j] = frequency_dict.get(class_label, 0)
 
     return confusion
