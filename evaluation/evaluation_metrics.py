@@ -7,7 +7,15 @@ class Evaluation:
     confusion_matrix (np.ndarray of shape (C, C)).
     """
 
-    def __init__(self, confusion_matrix):
+    def __init__(self, confusion_matrix: np.ndarray):
+        """
+        Computes evaluation metrics from a confusion matrix.
+
+        :param confusion_matrix: A confusion matrix of shape (C, C) and type float,
+            where C is the number of classes. Rows are ground truth per class and
+            columns are predictions.
+        """
+
         self.confusion_matrix = confusion_matrix
         self.accuracy = self._evaluate_accuracy()
         self.precisions = self._evaluate_precisions()
