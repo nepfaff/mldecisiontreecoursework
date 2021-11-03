@@ -75,7 +75,7 @@ def nested_cross_validation(
 
             # Evaluate tree to obtain & store the confusion Matrix using test data
             pruned_confusion_matrices[nested_i] = construct_confusion_matrix(
-                y[test_indices], y_predicted
+                y[test_indices], y_predicted, class_labels
             )
 
         # Obtain average confusion matrix from pruned inner loop of 9 confusion matrices
@@ -180,7 +180,7 @@ def construct_confusion_matrix(
 
     # if no class_labels are given, we obtain the set of unique class labels from
     # the union of the ground truth annotation and the prediction
-    if not class_labels:
+    if class_labels is None:
         class_labels = np.unique(np.concatenate((y_gold, y_prediction)))
 
     confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int)
