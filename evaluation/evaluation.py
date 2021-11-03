@@ -15,7 +15,8 @@ def nested_cross_validation(
     x: np.ndarray, y: np.ndarray, folds: int = 10, random_generator=default_rng()
 ) -> Evaluation:
     """
-    Applies a nested cross validation to a dataset returning evaulation metrics
+    Applies a nested cross validation to a dataset returning evaulation metrics.
+    This function evaluates the decision tree with pruning algorithm.
 
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
@@ -96,7 +97,8 @@ def cross_validation(
     x: np.ndarray, y: np.ndarray, folds: int = 10, random_generator=default_rng()
 ) -> Evaluation:
     """
-    Applies a cross validation to a dataset returning average evaulation metrics
+    Applies a cross validation to a dataset returning average evaulation metrics.
+    This function evaluates the decision tree without pruning algorithm.
 
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
