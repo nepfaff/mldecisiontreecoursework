@@ -60,6 +60,9 @@ def evaluate_decision_tree_algorithm(
         tree_depths.append(depth)
         pruned_tree_depths.append(pruned_decision_tree_depth)
 
+    # Obtain the possible classes
+    classes = np.unique(y)
+
     # Create result text
     result_text_lines = [
         "----------------------------------------------------",
@@ -68,17 +71,17 @@ def evaluate_decision_tree_algorithm(
         f"Confusion matrix:\n{evaluation_without_pruning.confusion_matrix}",
         f"Accuracy: {evaluation_without_pruning.accuracy}",
         *[
-            f"Recall for class {i}: {evaluation_without_pruning.recalls[i]}"
+            f"Recall for class {classes[i]}: {evaluation_without_pruning.recalls[i]}"
             for i in range(len(evaluation_without_pruning.recalls))
         ],
         f"Macro-averaged Recall: {np.mean(evaluation_without_pruning.recalls)}",
         *[
-            f"Precision for class {i}: {evaluation_without_pruning.precisions[i]}"
+            f"Precision for class {classes[i]}: {evaluation_without_pruning.precisions[i]}"
             for i in range(len(evaluation_without_pruning.precisions))
         ],
         f"Macro-averaged Precision: {np.mean(evaluation_without_pruning.precisions)}",
         *[
-            f"F1-measure for class {i}: {evaluation_without_pruning.f1s[i]}"
+            f"F1-measure for class {classes[i]}: {evaluation_without_pruning.f1s[i]}"
             for i in range(len(evaluation_without_pruning.f1s))
         ],
         f"Macro-averaged F1-measure: {np.mean(evaluation_without_pruning.f1s)}",
@@ -88,17 +91,17 @@ def evaluate_decision_tree_algorithm(
         f"Confusion matrix:\n{evaluation_with_pruning.confusion_matrix}",
         f"Accuracy: {evaluation_with_pruning.accuracy}",
         *[
-            f"Recall for class {i}: {evaluation_with_pruning.recalls[i]}"
+            f"Recall for class {classes[i]}: {evaluation_with_pruning.recalls[i]}"
             for i in range(len(evaluation_with_pruning.recalls))
         ],
         f"Macro-averaged Recall: {np.mean(evaluation_with_pruning.recalls)}",
         *[
-            f"Precision for class {i}: {evaluation_with_pruning.precisions[i]}"
+            f"Precision for class {classes[i]}: {evaluation_with_pruning.precisions[i]}"
             for i in range(len(evaluation_with_pruning.precisions))
         ],
         f"Macro-averaged Precision: {np.mean(evaluation_with_pruning.precisions)}",
         *[
-            f"F1-measure for class {i}: {evaluation_with_pruning.f1s[i]}"
+            f"F1-measure for class {classes[i]}: {evaluation_with_pruning.f1s[i]}"
             for i in range(len(evaluation_with_pruning.f1s))
         ],
         f"Macro-averaged F1-measure: {np.mean(evaluation_with_pruning.f1s)}",
