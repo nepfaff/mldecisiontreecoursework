@@ -11,10 +11,11 @@ def load_txt_data(path: str, attribute_number: int) -> Tuple[np.ndarray, np.ndar
 
     :param path: The path to the data txt file.
     :param attribute_number: The number of attributes that the data contains.
+
     :return: A tuple of (x, y):
-        - x: Contains the attributes. An array of shape (n, k) where n is the
-            number of rows in the txt file and k is the 'attribute_number'.
-        - y: Contains the class labels corresponding to x. An array of shape (n,).
+        - x: Contains the attributes. An array of shape (n, k) and type float where n is the
+            number of instances in the txt file and k is the 'attribute_number'.
+        - y: Contains the class labels corresponding to x. An array of shape (n,) and type int.
     """
 
     data = np.loadtxt(path)
