@@ -43,6 +43,7 @@ def evaluate_decision_tree_algorithm(
     # the validation set used for pruning
     tree_depths = []
     pruned_tree_depths = []
+    # Evaluate 10 different data splits to obtain average depths
     for i in range(10):
         rg = default_rng(i)
 
