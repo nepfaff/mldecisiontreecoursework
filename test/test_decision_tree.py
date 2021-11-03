@@ -3,7 +3,13 @@ from typing import Dict, Tuple, List
 import pytest
 import numpy as np
 
-from decision_tree import find_split, decision_tree_learning, decision_tree_predict
+from decision_tree import (
+    find_split,
+    decision_tree_learning,
+    decision_tree_predict,
+    decision_tree_pruning,
+    calculate_decision_tree_depth,
+)
 
 
 @pytest.fixture
@@ -281,3 +287,89 @@ def test_decision_tree_predict(decision_tree_predict_datasets):
         decision_tree, _ = decision_tree_learning(X_train[i], Y_train[i])
         y_predict = decision_tree_predict(decision_tree, X_predict[i])
         assert np.all(y_predict == Y_predict[i]), f"test case {i} failed"
+
+
+@pytest.fixture
+def decision_tree_pruning_datasets() -> Tuple[
+    List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray]
+]:
+    """
+    :return: A tuple of (X_train, Y_train, X_validation, Y_validation):
+        - X_train: A list of instance attribute training data sets ([x1, x2, x3, ...]) that have
+            shape (n, k) where n is the number of instances and k the number of attributes.
+        - Y_train: A list of training data sets ([y1, y2, y3, ...]) containing the class labels
+            corresponding to 'X_train' that have shape (n,).
+        - X_validation: A list of instance attribute validation data sets ([x1, x2, x3, ...]) that have
+            shape (n, k) where n is the number of instances and k the number of attributes.
+        - Y_validation: A list of validation data sets ([y1, y2, y3, ...]) containing the class labels
+            corresponding to 'X_validation' that have shape (n,).
+    """
+
+    X_train = [
+        np.array(
+            [
+                [1, 5],
+                [2, 1],
+                [2, 3],
+                [3, 2],
+                [1, 1],
+                [3, 4],
+                [5, 1],
+                [4, 5],
+                [2, 4],
+                [6, 5],
+            ]
+        )
+    ]
+    Y_train = [np.array([1, 2, 1, 1, 1, 2, 2, 1, 1, 2])]
+    X_validation = [
+        np.array(
+            [
+                [1, 2],
+                [3, 5],
+                [6, 3],
+                [5, 5],
+                [3, 1],
+                [4, 2],
+                [4, 3],
+                [6, 2],
+                [5, 4],
+                [1, 4],
+            ]
+        )
+    ]
+    Y_validation = [np.array([1, 1, 2, 2, 2, 2, 2, 2, 2, 1])]
+
+    return X_train, Y_train, X_validation, Y_validation
+
+
+def test_decision_tree_pruning(decision_tree_pruning_datasets):
+    """
+    Tests 'decision_tree_pruning'.
+    """
+
+    X_train, Y_train, X_validation, Y_validation = decision_tree_pruning_datasets
+    for i in range(len(X_train)):
+        # Unpruned decision tree
+        decision_tree, depth = decision_tree_learning(X_train[i], Y_train[i])
+        y_predict = decision_tree_predict(decision_tree, X_validation[i])
+        validation_errors_pre_pruning = np.sum(y_predict != Y_validation[i])
+
+        # Pruned decision tree
+        pruned_decision_tree, validation_errors_pruning = decision_tree_pruning(
+            decision_tree, X_train[i], Y_train[i], X_validation[i], Y_validation[i]
+        )
+        y_predict = decision_tree_predict(pruned_decision_tree, X_validation[i])
+        validation_errors_post_pruning = np.sum(y_predict != Y_validation[i])
+
+        # Test that pruning did not increase the number of validation errors
+        assert (
+            validation_errors_pruning == validation_errors_post_pruning
+            and validation_errors_post_pruning <= validation_errors_pre_pruning
+        ), f"test case {i} failed - pruning increased the number of validation errors"
+
+        # Test that pruning did not increase the tree depth
+        depth_after_pruning = calculate_decision_tree_depth(pruned_decision_tree)
+        assert (
+            depth_after_pruning <= depth
+        ), f"test case {i} failed - pruning increased the tree depth"

@@ -148,10 +148,10 @@ def decision_tree_predict(decision_tree: Dict, x: np.ndarray) -> np.ndarray:
         trained on data of the same format as 'x'.
     :param x: Attributes of shape (n, k) where n is the number of instances and k
         the number of attributes.
-    :return: The predicted labels corresponding to 'x' of shape (n,).
+    :return: The predicted labels corresponding to 'x' of shape (n,) of type int.
     """
 
-    y = np.empty(len(x))
+    y = np.empty(len(x), dtype=int)
 
     # Pass each instance through the decision tree
     for i, instance in enumerate(x):
@@ -167,3 +167,138 @@ def decision_tree_predict(decision_tree: Dict, x: np.ndarray) -> np.ndarray:
         y[i] = node["label"]
 
     return y
+
+
+def prune_node(
+    node: Dict,
+    y_training: np.ndarray,
+    x_validation: np.ndarray,
+    y_validation: np.ndarray,
+) -> Tuple[Dict, int]:
+    """
+    Prunes a node with two leaf children based on improving the validation error.
+
+    :param node: A decision tree node as produced by 'decision_tree_learning' that has two
+        leaf children.
+    :param y_training: Class labels of shape (n,) that were used for training the decision tree.
+    :param x_validation: Attributes of shape (m, k) where n is the number of instances and k
+        the number of attributes.
+    :param y_validation: Class labels of shape (m,). These correspond to the instances in
+        'x_validation'.
+    :return: A tuple of (pruned_decision_tree, validation_errors):
+        - pruned_decision_tree: A pruned version of the input 'decision_tree'.
+        - validation_errors: The number of validation errors produced by the pruned tree.
+    """
+
+    # Compute the number of validation errors before pruning
+    y_predict = decision_tree_predict(node, x_validation)
+    validation_errors_pre_pruning = np.sum(y_predict != y_validation)
+
+    # Find the majority class label based on the training data
+    labels, counts = np.unique(y_training, return_counts=True)
+    # 'labels' can be a np.ndarray or an integer
+    majority_label = (
+        labels[np.argmax(counts)] if isinstance(labels, np.ndarray) else labels
+    )
+
+    # Compute the number of validation errors after pruning
+    validation_errors_post_pruning = np.sum(majority_label != y_validation)
+
+    if validation_errors_post_pruning <= validation_errors_pre_pruning:
+        # Pruning improved the validation error => Prune the node
+        return get_leaf_node_dict(majority_label), validation_errors_post_pruning
+    # Pruning did not improve the validation error => Don't prune the node
+    return node, validation_errors_pre_pruning
+
+
+def decision_tree_pruning(
+    decision_tree: Dict,
+    x_training: np.ndarray,
+    y_training: np.ndarray,
+    x_validation: np.ndarray,
+    y_validation: np.ndarray,
+) -> Tuple[Dict, int]:
+    """
+    Prunes a decision tree based on improving the validation error.
+
+    :param decision_tree: A decision tree as produced by 'decision_tree_learning' when
+        trained on data of the same format as 'x_validation'.
+    :param x_trianing: Attributes of shape (n, k) where n is the number of instances and k
+        the number of attributes.
+    :param y_training: Class labels of shape (n,). These correspond to the instances in
+        'x_training'.
+    :param x_validation: Attributes of shape (m, l) where n is the number of instances and k
+        the number of attributes.
+    :param y_validation: Class labels of shape (m,). These correspond to the instances in
+        'x_validation'.
+    :return: A tuple of (pruned_decision_tree, validation_errors):
+        - pruned_decision_tree: A pruned version of the input 'decision_tree'.
+        - validation_errors: The number of validation errors produced by the pruned tree.
+    """
+
+    # Check for leaf node
+    if decision_tree["is_leaf"]:
+        if len(x_validation) == 0:
+            # No validation errors when there are no instances to classify
+            validation_errors = 0
+        else:
+            y_predict = decision_tree_predict(decision_tree, x_validation)
+            validation_errors = np.sum(y_predict != y_validation)
+
+        return decision_tree, validation_errors
+
+    # Check if the tree can be pruned
+    if decision_tree["left"]["is_leaf"] and decision_tree["right"]["is_leaf"]:
+        return prune_node(decision_tree, y_training, x_validation, y_validation)
+
+    # Prune the left child tree
+    left_training_mask = (
+        x_training[:, decision_tree["attribute"]] < decision_tree["value"]
+    )
+    left_validation_mask = (
+        x_validation[:, decision_tree["attribute"]] < decision_tree["value"]
+    )
+    left_pruned_tree, left_validation_errors = decision_tree_pruning(
+        decision_tree["left"],
+        x_training[left_training_mask, :],
+        y_training[left_training_mask],
+        x_validation[left_validation_mask, :],
+        y_validation[left_validation_mask],
+    )
+    decision_tree["left"] = left_pruned_tree
+
+    # Prune the right child tree
+    right_training_mask = np.bitwise_not(left_training_mask)
+    right_validation_mask = np.bitwise_not(left_validation_mask)
+    right_pruned_tree, right_validation_errors = decision_tree_pruning(
+        decision_tree["right"],
+        x_training[right_training_mask, :],
+        y_training[right_training_mask],
+        x_validation[right_validation_mask, :],
+        y_validation[right_validation_mask],
+    )
+    decision_tree["right"] = right_pruned_tree
+
+    # Check if the tree can be pruned further
+    if decision_tree["left"]["is_leaf"] and decision_tree["right"]["is_leaf"]:
+        return prune_node(decision_tree, y_training, x_validation, y_validation)
+
+    return decision_tree, left_validation_errors + right_validation_errors
+
+
+def calculate_decision_tree_depth(decision_tree: Dict) -> int:
+    """
+    Calculates the maximal depth of a decision tree. The root node is counted as
+    depth one.
+
+    :param decision_tree: The decision tree to calculate the depth for. The format
+        should correspond to the one produced by 'decision_tree_learning'.
+    :return: The maximal depth of the decision tree.
+    """
+
+    if decision_tree["is_leaf"]:
+        return 1
+
+    left_depth = calculate_decision_tree_depth(decision_tree["left"])
+    right_depth = calculate_decision_tree_depth(decision_tree["right"])
+    return max(left_depth, right_depth) + 1
