@@ -160,7 +160,9 @@ def j_fold_split(
     return split_indices
 
 
-def construct_confusion_matrix(y_gold, y_prediction, class_labels=None) -> np.ndarray:
+def construct_confusion_matrix(
+    y_gold: np.ndarray, y_prediction: np.ndarray, class_labels: np.ndarray = None
+) -> np.ndarray:
     """
     Compute the confusion matrix.
 
@@ -185,14 +187,16 @@ def construct_confusion_matrix(y_gold, y_prediction, class_labels=None) -> np.nd
     for (i, label) in enumerate(class_labels):
         # get predictions where the ground truth is the current class label
         indices = y_gold == label
-        gold = y_gold[indices]
         predictions = y_prediction[indices]
 
         # quick way to get the counts per label
-        (unique_labels, counts) = np.unique(predictions, return_counts=True)
+        (unique_labels, predictions_per_label) = np.unique(
+            predictions, return_counts=True
+        )
 
-        # convert the counts to a dictionary
-        frequency_dict = dict(zip(unique_labels, counts))
+        # convert predictions_per_label to a dictionary. This allows to easily insert a 0 as a default value
+        # should there be no predictions for a given label
+        frequency_dict = dict(zip(unique_labels, predictions_per_label))
 
         # fill up the confusion matrix for the current row
         for (j, class_label) in enumerate(class_labels):
