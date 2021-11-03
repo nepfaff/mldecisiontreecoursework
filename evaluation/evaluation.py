@@ -160,7 +160,7 @@ def j_fold_split(
     return split_indices
 
 
-def construct_confusion_matrix(y_gold, y_prediction, class_labels) -> np.ndarray:
+def construct_confusion_matrix(y_gold, y_prediction, class_labels=None) -> np.ndarray:
     """
     Compute the confusion matrix.
 
@@ -173,26 +173,29 @@ def construct_confusion_matrix(y_gold, y_prediction, class_labels) -> np.ndarray
 
     """
 
+    # if no class_labels are given, we obtain the set of unique class labels from
+    # the union of the ground truth annotation and the prediction
+    if not class_labels:
+        class_labels = np.unique(np.concatenate((y_gold, y_prediction)))
+
     confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int)
 
-    # construct confusion matrix
-    for gold, predicted in zip(y_gold, y_prediction):
-        confusion[gold, predicted] += 1
+    # for each correct class (row),
+    # compute how many instances are predicted for each class (columns)
+    for (i, label) in enumerate(class_labels):
+        # get predictions where the ground truth is the current class label
+        indices = y_gold == label
+        gold = y_gold[indices]
+        predictions = y_prediction[indices]
 
-    # for (i, label) in enumerate(class_labels):
-    #     # get predictions where the ground truth is the current class label
-    #     indices = y_gold == label
-    #     gold = y_gold[indices]
-    #     predictions = y_prediction[indices]
+        # quick way to get the counts per label
+        (unique_labels, counts) = np.unique(predictions, return_counts=True)
 
-    #     # quick way to get the counts per label
-    #     (unique_labels, counts) = np.unique(predictions, return_counts=True)
+        # convert the counts to a dictionary
+        frequency_dict = dict(zip(unique_labels, counts))
 
-    #     # convert the counts to a dictionary
-    #     frequency_dict = dict(zip(unique_labels, counts))
-
-    #     # fill up the confusion matrix for the current row
-    #     for (j, class_label) in enumerate(class_labels):
-    #         confusion[i, j] = frequency_dict.get(class_label, 0)
+        # fill up the confusion matrix for the current row
+        for (j, class_label) in enumerate(class_labels):
+            confusion[i, j] = frequency_dict.get(class_label, 0)
 
     return confusion

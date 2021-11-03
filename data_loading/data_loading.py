@@ -25,12 +25,6 @@ def load_txt_data(path: str, attribute_number: int) -> Tuple[np.ndarray, np.ndar
 
     # y_lables: a numpy array with shape (n, ), and each element is the label corresponding
     # to the nth instance in x.
-    y_labels = data[:, -1]
-
-    # Map labels to class indexes
-
-    # y_unique: a numpy array with shape (c, ), where c is the number of labels. Each element corresponds
-    # to a distinct label in y
-    (y_unique, y) = np.unique(y_labels, return_inverse=True)
+    y = data[:, -1]
 
     return x, y
