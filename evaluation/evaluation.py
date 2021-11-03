@@ -1,11 +1,12 @@
 import numpy as np
 from numpy.random import default_rng
+
 from decision_tree import (
     decision_tree_learning,
     decision_tree_predict,
     decision_tree_pruning,
 )
-from evaluation.evaluation_metrics import Evaluation
+from evaluation import Evaluation
 
 
 def nested_cross_validation(
@@ -18,8 +19,7 @@ def nested_cross_validation(
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
     :param folds: number of folds that the dataset is divided in.
-    :param random_generator (np.random.Generator): A random generator
-
+    :param random_generator: A random generator (np.random.Generator).
     :return: Instance of a class Evaluation. Evaluation contains:
         - Confusion matrix  (nparray of floats)
         - Accuracy (float)
@@ -96,8 +96,7 @@ def cross_validation(
         the number of attributes.
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
     :param folds: number of folds that the dataset is divided in.
-    :param random_generator (np.random.Generator): A random generator
-
+    :param random_generator: A random generator (np.random.Generator).
     :return: Instance of a class Evaluation. Evaluation contains:
         - Confusion matrix  (nparray of floats)
         - Accuracy (float)
@@ -144,11 +143,12 @@ def j_fold_split(
 ) -> np.ndarray:
     """
     Randomises indices and splits them into j folds
+
     :param n_instances: Number of instances of the dataset.
     :param j: Number of folds for splitting.
-    :param random_generator (np.random.Generator): A random generator
-    :return: an nparray of size j. Each element in the array is a numpy array giving the indices of the instance in that fold.
-
+    :param random_generator: A random generator (np.random.Generator).
+    :return: an nparray of size j. Each element in the array is a numpy
+        array giving the indices of the instance in that fold.
     """
 
     # generate a random permutation of indices from 0 to n_instances
@@ -166,13 +166,11 @@ def construct_confusion_matrix(
     """
     Compute the confusion matrix.
 
-    :param: y_gold : np.ndarray of shape (n,) the correct ground truth/gold standard labels
-    :param: y_prediction : np.ndarray of shape (n,) the predicted labels
-    :param: class_labels : np.ndarray of unique class labels.
-
-    :return: np.ndarray : np.ndarray shape (C, C), where C is the number of classes. Rows are ground truth per class,
-    columns are predictions
-
+    :param y_gold : np.ndarray of shape (n,) the correct ground truth/gold standard labels
+    :param y_prediction : np.ndarray of shape (n,) the predicted labels
+    :param class_labels : np.ndarray of unique class labels.
+    :return: np.ndarray shape (C, C) of type int, where C is the number of classes. Rows are
+        ground truth per class, columns are predictions
     """
 
     # if no class_labels are given, we obtain the set of unique class labels from

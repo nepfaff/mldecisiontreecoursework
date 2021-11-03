@@ -3,7 +3,8 @@ import numpy as np
 
 class Evaluation:
     """
-    A class used to compute the evaluation metrics given a confusion_matrix (np.ndarray of shape (C, C)).
+    A class used to compute the evaluation metrics given a
+    confusion_matrix (np.ndarray of shape (C, C)).
     """
 
     def __init__(self, confusion_matrix):
@@ -17,8 +18,8 @@ class Evaluation:
         """
         Compute the accuracy given a confusion matrix
 
-            :return: the accuracy. Accuracy is calculated as the
-            sum of diagonal elemnts over sum of all elemnts in the matrix
+        :return: the accuracy. Accuracy is calculated as the sum of
+            diagonal elemnts over sum of all elemnts in the matrix.
         """
 
         return np.trace(self.confusion_matrix) / np.sum(self.confusion_matrix)
@@ -29,11 +30,7 @@ class Evaluation:
 
         :return: np.array containing the precision (float) per class.
         """
-        precisions = np.empty(
-            len(
-                self.confusion_matrix,
-            )
-        )
+        precisions = np.empty(len(self.confusion_matrix))
 
         column_sums = np.sum(self.confusion_matrix, axis=0)
 
@@ -48,11 +45,7 @@ class Evaluation:
 
         :return: np.array containing the recall (float) per class.
         """
-        recalls = np.empty(
-            len(
-                self.confusion_matrix,
-            )
-        )
+        recalls = np.empty(len(self.confusion_matrix))
 
         row_sums = np.sum(self.confusion_matrix, axis=1)
 
