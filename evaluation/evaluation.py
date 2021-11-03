@@ -160,7 +160,7 @@ def j_fold_split(
     return split_indices
 
 
-def construct_confusion_matrix(y_gold, y_prediction, class_labels):
+def construct_confusion_matrix(y_gold, y_prediction, class_labels) -> np.ndarray:
     """
     Compute the confusion matrix.
 
@@ -168,8 +168,8 @@ def construct_confusion_matrix(y_gold, y_prediction, class_labels):
     :param: y_prediction : np.ndarray of shape (n,) the predicted labels
     :param: class_labels : np.ndarray of unique class labels.
 
-    :return: np.array : np.ndarray shape (C, C), where C is the number of classes. Rows are ground truth per class,
-     columns are predictions
+    :return: np.ndarray : np.ndarray shape (C, C), where C is the number of classes. Rows are ground truth per class,
+    columns are predictions
 
     """
 
