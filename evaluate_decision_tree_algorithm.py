@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-from statistics import mean
 
 import numpy as np
 from numpy.random import default_rng
 
-from data_loading import load_txt_data, split_dataset_into_train_and_test
-from decision_tree import (
-    decision_tree_learning,
-    decision_tree_pruning,
-    calculate_decision_tree_depth,
-)
+from data_loading import load_txt_data
 from evaluation import cross_validation, nested_cross_validation
 
 
@@ -43,31 +37,9 @@ def evaluate_decision_tree_algorithm(
     )
 
     # Evaluation with pruning
-    evaluation_with_pruning = nested_cross_validation(
+    evaluation_with_pruning, average_unpruned_depth, average_pruned_depth = nested_cross_validation(
         x, y, random_generator=random_generator
     )
-
-    # Depth analysis when using 80% of the data set for training and 20% for
-    # the validation set used for pruning
-    tree_depths = []
-    pruned_tree_depths = []
-    # Evaluate 10 different data splits to obtain average depths
-    for i in range(10):
-        rg = default_rng(i)
-
-        x_train, y_train, x_validation, y_validation = split_dataset_into_train_and_test(
-            x, y, 0.2, rg
-        )
-
-        decision_tree, depth = decision_tree_learning(x_train, y_train)
-
-        pruned_decision_tree, _ = decision_tree_pruning(
-            decision_tree, x_train, y_train, x_validation, y_validation
-        )
-        pruned_decision_tree_depth = calculate_decision_tree_depth(pruned_decision_tree)
-
-        tree_depths.append(depth)
-        pruned_tree_depths.append(pruned_decision_tree_depth)
 
     # Obtain the possible classes
     classes = np.unique(y)
@@ -94,7 +66,7 @@ def evaluate_decision_tree_algorithm(
             for i in range(len(evaluation_without_pruning.f1s))
         ],
         f"Macro-averaged F1-measure: {np.mean(evaluation_without_pruning.f1s)}",
-        f"Average depth over 10 iterations when trained on 80% of the data set: {mean(tree_depths)}",
+        f"Average depth (average of all trees produced in nested cross-validation): {average_unpruned_depth}",
         "----------------------------------------------------\n",
         "Evaluation With Pruning:\n",
         f"Confusion matrix:\n{evaluation_with_pruning.confusion_matrix}",
@@ -114,7 +86,7 @@ def evaluate_decision_tree_algorithm(
             for i in range(len(evaluation_with_pruning.f1s))
         ],
         f"Macro-averaged F1-measure: {np.mean(evaluation_with_pruning.f1s)}",
-        f"Average depth over 10 iterations when trained on 80% of the data set: {mean(pruned_tree_depths)}",
+        f"Average depth (average of all trees produced in nested cross-validation): {average_pruned_depth}",
         "----------------------------------------------------",
     ]
 

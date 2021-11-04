@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Tuple
+from statistics import mean
 
 import numpy as np
 from numpy.random import default_rng
@@ -7,13 +8,14 @@ from decision_tree import (
     decision_tree_learning,
     decision_tree_predict,
     decision_tree_pruning,
+    calculate_decision_tree_depth,
 )
 from evaluation import Evaluation
 
 
 def nested_cross_validation(
     x: np.ndarray, y: np.ndarray, folds: int = 10, random_generator=default_rng()
-) -> Evaluation:
+) -> Tuple[Evaluation, float, float]:
     """
     Applies a nested cross validation to a dataset returning evaulation metrics.
     This function evaluates the decision tree with pruning algorithm.
@@ -23,12 +25,15 @@ def nested_cross_validation(
     :param y: Class labels of shape (n,). These correspond to the instances in 'x'.
     :param folds: number of folds that the dataset is divided in.
     :param random_generator: A random generator (np.random.Generator).
-    :return: Instance of a class Evaluation. Evaluation contains:
-        - Confusion matrix  (nparray of floats)
-        - Accuracy (float)
-        - Recall rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
-        - Precision rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
-        - F1 measures per class (nparray of floats). The ith entry is the f2 measure of the ith class.
+    :return: A tuple of (evaluation_instance, average_unpruned_depth, average_pruned_depth):
+        - evaluation_instance: An instance of the Evaluation class that contains the following evaluation metrics:
+            - Confusion matrix  (nparray of floats)
+            - Accuracy (float)
+            - Recall rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
+            - Precision rates per class (nparray of floats). The ith entry is the accuracy of the ith class.
+            - F1 measures per class (nparray of floats). The ith entry is the f2 measure of the ith class.
+        - average_unpruned_depth: The average decision tree depth without pruning.
+        - average_pruned_depth: The average decision tree depth after pruning.
     """
     # Randomise data & split code into folds (10) segments (of array)
     split_indices = j_fold_split(len(x), folds, random_generator)
@@ -39,6 +44,10 @@ def nested_cross_validation(
     average_pruned_confusion_matrices = np.empty(
         (folds, len(class_labels), len(class_labels))
     )
+
+    # Lists for storing the depths of all obtained decision trees
+    unpruned_depths = []
+    pruned_depths = []
 
     for i, fold in enumerate(split_indices):
         # Assign test and train data
@@ -58,9 +67,10 @@ def nested_cross_validation(
             )
 
             # Build tree using train dataset
-            (decision_tree, _) = decision_tree_learning(
+            decision_tree, unpruned_depth = decision_tree_learning(
                 x[train_indices], y[train_indices]
             )
+            unpruned_depths.append(unpruned_depth)
 
             # Prune tree using validation dataset
             pruned_decision_tree, _ = decision_tree_pruning(
@@ -70,6 +80,8 @@ def nested_cross_validation(
                 x[validation_indices],
                 y[validation_indices],
             )
+            pruned_depth = calculate_decision_tree_depth(pruned_decision_tree)
+            pruned_depths.append(pruned_depth)
 
             # Run decision tree on test data
             y_predicted = decision_tree_predict(pruned_decision_tree, x[test_indices])
@@ -90,7 +102,7 @@ def nested_cross_validation(
     # Obtain & return other evaluation metrics
     evaluated_algorithm = Evaluation(average_confusion_matrix)
 
-    return evaluated_algorithm
+    return evaluated_algorithm, mean(unpruned_depths), mean(pruned_depths)
 
 
 def cross_validation(
