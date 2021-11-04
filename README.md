@@ -100,7 +100,8 @@ print(evaluation.f1s)
 
 ## Visualisation
 
-**TODO:** Add information about what function to call to visualise a decision tree
+To see a visualisation of the trained tree simply run './visualise_decision_tree'.
+A .png file named 'clean_unprunned.png' can be found in the 'figures/ folder'.
 
 ## Testing
 
