@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from typing import Literal, Tuple
 import os
 
 
@@ -22,9 +21,10 @@ def plotNode(
     y: float,
     Node: dict,
     ax: plt.Axes,
-    division_size: float,
-    distance: float = 1000.0,
-) -> Tuple[float, float, float]:
+    current_depth: int,
+    depth: int,
+    width: int,
+) -> None:
     """
     Recursivly plots nodes on the figure, with description of the node
 
@@ -32,25 +32,24 @@ def plotNode(
     :param y: y-axis location of node.
     :param Node: dict containing node information.
     :param ax: contains figure elements.
-    :param division_size: factor that controls the size of future node distances.
-    :param distance: distance between current node and children nodes.
-    :return: A tuple of (x_left, x_right, y_max_depth):
-        - x_left: x-axis value of the furthest left node
-        - x_right: x-axis value of the furthest right node
-        - y_max_depth: y-axis of the lowest node
-
+    :param current depth: hold value of current depth in tree.
+    :param depth: max depth of tree.
+    :param width: max width of tree taking into account size of nodes.
+    :return: None.
     """
-
-    # Defining variables for creating the range of the figure
-    xL_left, xR_right, y_left, y_right = 0, 0, 0, 0
-
+    print(x, y, width)
     # Checking to see if leaf node
+
     if Node["is_leaf"]:
         box_text = f'leaf: {Node["label"]}'
 
         # Plotting node with a box around it
         ax.text(
-            x, y, box_text, color="red", bbox=dict(facecolor="white", edgecolor="red")
+            x,
+            y,
+            box_text,
+            color="red",
+            bbox=dict(facecolor="white", edgecolor="red"),
         )
 
     else:
@@ -59,74 +58,72 @@ def plotNode(
 
         # Plotting node with a box around it
         ax.text(
-            x, y, box_text, color="red", bbox=dict(facecolor="white", edgecolor="red")
+            x,
+            y,
+            box_text,
+            color="red",
+            bbox=dict(facecolor="white", edgecolor="red"),
         )
 
+        # New distance calculation
+
+        distance = width / (2 ** current_depth)
         # Checking for left and right nodes and recusivly calling function
         if Node["left"] != None:
-            xL_left, _, y_left = plotNode(
-                (x - distance),
+            # Creating location of node
+
+            plotNode(
+                (x - (distance)),
                 (y - 5),
                 Node["left"],
                 ax,
-                division_size,
-                (distance / division_size),
+                (current_depth + 1),
+                depth,
+                width,
             )
             joinNodes(x, y, (x - distance), (y - 5), ax)
 
         if Node["right"] != None:
-            _, xR_right, y_right = plotNode(
+            plotNode(
                 (x + distance),
                 (y - 5),
                 Node["right"],
                 ax,
-                division_size,
-                (distance / division_size),
+                (current_depth + 1),
+                depth,
+                width,
             )
             joinNodes(x, y, (x + distance), (y - 5), ax)
 
-    # Building boarders for figure
 
-    xL = x if xL_left == 0 else xL_left
-
-    xR = x if xR_right == 0 else xR_right
-
-    return xL, xR, min(y_left, y_right)
-
-
-def plotTree(Tree: dict, tree_name: str = "tree", division_size: float = 1.7):
+def plotTree(Tree: dict, tree_name: str = "tree", depth: int = 0):
     """
     Function that takes the top node of the tree and plots the whole tree
 
     :param Tree: dict containing tree.
-    :param tree_name: name of .png file
-    :param division_size: tuning parameter to ensure tree looks correct visualy via spacing between nodes, value must be greater than 1
+    :param tree_name: name of .png file.
+    :param depth: depth of tree.
     :return: No return
     :result: .png file named tree.png, found in visualisation folder.
     """
+    # Using depth of tree to work out maximum width
+    width = (2 ** depth) * 5
+
     # Defining figure information
     start_location = [0, 0]
-    _, ax = plt.subplots(figsize=(50, 50))
+    _, ax = plt.subplots(figsize=(100, 20))
 
     # Calling recursive node plotting software
-    x_left, x_right, y_depth = plotNode(
-        start_location[0], start_location[1], Tree, ax, division_size
-    )
+    plotNode(start_location[0], start_location[1], Tree, ax, 0, depth, width)
 
     # Assinging figure boarders and information
 
-    if x_left == 0:
-        x_left = -50
-    if x_right == 0:
-        x_right = 50
+    y_depth = -depth * 5
 
-    if y_depth == 0:
-        y_depth = -50
-
-    plt.xlim([x_left, x_right])
+    # plt.xlim([width, -width])
     plt.ylim([5, y_depth])
     plt.gca().invert_yaxis()
-    # ax.axis("off")
+    ax.axis("off")
     plt.show()
     #   Saving figure to file
     if not os.path.exists("figures"):
