@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
 from data_loading import load_txt_data
-from decision_tree import (
-    decision_tree_learning,
-)
+from decision_tree import decision_tree_learning
 from visualisation import plotTree
 import logging
 
 
 def visualise_decision_tree(
-    data_txt_path: str,
-    attribute_number: int,
-    data_type: str,
+    data_txt_path: str, attribute_number: int, data_type: str
 ) -> None:
     """
     Produces a decision tree and creates visual representation of the tree
@@ -41,7 +37,7 @@ def visualise_decision_tree(
 
 def main() -> None:
 
-    visualise_decision_trees(
+    visualise_decision_tree(
         "./Data/intro2ML-coursework1/wifi_db/clean_dataset.txt", 7, "clean"
     )
 

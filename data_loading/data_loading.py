@@ -25,6 +25,6 @@ def load_txt_data(path: str, attribute_number: int) -> Tuple[np.ndarray, np.ndar
     y = data[:, -1]
 
     # Change the label type from float to int
-    y = y.astype(np.int)
+    y = y.astype(np.int64)
 
     return x, y
