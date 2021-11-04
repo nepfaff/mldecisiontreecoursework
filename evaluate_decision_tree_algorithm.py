@@ -16,7 +16,10 @@ from evaluation import cross_validation, nested_cross_validation
 
 
 def evaluate_decision_tree_algorithm(
-    data_txt_path: str, attribute_number: int, evaluation_results_file_path: str = None
+    data_txt_path: str,
+    attribute_number: int,
+    evaluation_results_file_path: str = None,
+    random_generator=default_rng(),
 ) -> None:
     """
     Evaluates the decision tree algorithm both without pruning and with pruning.
@@ -28,16 +31,21 @@ def evaluate_decision_tree_algorithm(
     :param attribute_number: The number of attributes that the data contains.
     :param evaluation_results_file_path: The file to append the evaluation results to. The
         results are printed to the terminal if this is None.
+    :param random_generator: NumPy random number generator.
     """
 
     # Load data
     x, y = load_txt_data(data_txt_path, attribute_number)
 
     # Evaluation without pruning
-    evaluation_without_pruning = cross_validation(x, y)
+    evaluation_without_pruning = cross_validation(
+        x, y, random_generator=random_generator
+    )
 
     # Evaluation with pruning
-    evaluation_with_pruning = nested_cross_validation(x, y)
+    evaluation_with_pruning = nested_cross_validation(
+        x, y, random_generator=random_generator
+    )
 
     # Depth analysis when using 80% of the data set for training and 20% for
     # the validation set used for pruning
@@ -131,11 +139,14 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Seed random generator for splitting data sets
+    rg = default_rng(100)
+
     evaluate_decision_tree_algorithm(
-        "./Data/intro2ML-coursework1/wifi_db/clean_dataset.txt", 7, args.path
+        "./Data/intro2ML-coursework1/wifi_db/clean_dataset.txt", 7, args.path, rg
     )
     evaluate_decision_tree_algorithm(
-        "./Data/intro2ML-coursework1/wifi_db/noisy_dataset.txt", 7, args.path
+        "./Data/intro2ML-coursework1/wifi_db/noisy_dataset.txt", 7, args.path, rg
     )
 
 
