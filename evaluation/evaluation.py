@@ -185,7 +185,7 @@ def construct_confusion_matrix(
     if class_labels is None:
         class_labels = np.unique(np.concatenate((y_gold, y_prediction)))
 
-    confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int)
+    confusion = np.zeros((len(class_labels), len(class_labels)), dtype=np.int64)
 
     # for each correct class (row),
     # compute how many instances are predicted for each class (columns)
