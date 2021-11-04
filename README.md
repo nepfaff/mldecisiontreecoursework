@@ -103,8 +103,8 @@ print(average_pruned_depth)
 
 ## Visualisation
 
-To see a visualisation of the trained tree simply run `./visualise_decision_tree`.
-A .png file named `clean_unprunned.png` can be found in the `figures/` folder'.
+To visualise a decision tree trained on the entire clean data set without pruning, run the script `mldecisiontreecoursework/visualise_decision_tree.py`. For example, from inside the `mldecisiontreecoursework` directory, this script can be called using `./visualise_decision_tree.py`.
+This creates a `.png` file named `clean_unprunned.png` inside the `figures/` directory.
 
 ## Testing
 
