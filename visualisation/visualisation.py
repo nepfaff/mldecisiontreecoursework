@@ -3,7 +3,7 @@ from typing import Literal, Tuple
 import os
 
 
-def joinNodes(x1: float, y1: float, x2: float, y2: float, ax: plt.Axes):
+def joinNodes(x1: float, y1: float, x2: float, y2: float, ax: plt.Axes) -> None:
     """
     Creats a line between nodes
 
@@ -23,8 +23,8 @@ def plotNode(
     Node: dict,
     ax: plt.Axes,
     division_size: float,
-    distance: float = 1000,
-) -> Tuple[int, int, int]:
+    distance: float = 1000.0,
+) -> Tuple[float, float, float]:
     """
     Recursivly plots nodes on the figure, with description of the node
 
@@ -34,14 +34,18 @@ def plotNode(
     :param ax: contains figure elements.
     :param division_size: factor that controls the size of future node distances.
     :param distance: distance between current node and children nodes.
-    :return: No return
+    :return: A tuple of (x_left, x_right, y_max_depth):
+        - x_left: x-axis value of the furthest left node
+        - x_right: x-axis value of the furthest right node
+        - y_max_depth: y-axis of the lowest node
+
     """
 
     # Defining variables for creating the range of the figure
     xL_left, xR_right, y_left, y_right = 0, 0, 0, 0
 
     # Checking to see if leaf node
-    if Node["is_leaf"] == True:
+    if Node["is_leaf"]:
         box_text = f'leaf: {Node["label"]}'
 
         # Plotting node with a box around it
@@ -90,7 +94,7 @@ def plotNode(
     return xL, xR, min(y_left, y_right)
 
 
-def plotTree(Tree: dict, tree_name: Literal = "tree", division_size: int = 1.7):
+def plotTree(Tree: dict, tree_name: str = "tree", division_size: float = 1.7):
     """
     Function that takes the top node of the tree and plots the whole tree
 
