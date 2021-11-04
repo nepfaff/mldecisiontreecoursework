@@ -83,12 +83,12 @@ print(evaluation.f1s)
 
 ### Evaluating the decision tree with pruning algorithm using nested cross-validation
 
-The following code snipet shows how to evaluate the decision tree algorithm with pruning using cross-validation. `x` is a `np.ndarray` of type `float` and shape `(n,k)` where `n` is the number of instances and `k` is the number of attributes. `y` is a `np.ndarray` of type `int` and shape `(n,)`. `evaluation` is an instance of the `Evaluation` class which contains the evaluation metrics. `confusion_matrix` is an averaged confusion matrix of type `float` and shape `(c,c)`, where `c` is the number of classes. The confusion matrix rows represent the actual classes and the columns the predicted classes. `accuracy` is the averaged accuracy. `precisions` are the averaged precisions per class where the lowest index represents the class with the lowest value. `recalls` are the averaged recalls per class where the lowest index represents the class with the lowest value. `f1s` are the averaged F1-measures per class where the lowest index represents the class with the lowest value.
+The following code snipet shows how to evaluate the decision tree algorithm with pruning using cross-validation. `x` is a `np.ndarray` of type `float` and shape `(n,k)` where `n` is the number of instances and `k` is the number of attributes. `y` is a `np.ndarray` of type `int` and shape `(n,)`. `evaluation` is an instance of the `Evaluation` class which contains the evaluation metrics. `confusion_matrix` is an averaged confusion matrix of type `float` and shape `(c,c)`, where `c` is the number of classes. The confusion matrix rows represent the actual classes and the columns the predicted classes. `accuracy` is the averaged accuracy. `precisions` are the averaged precisions per class where the lowest index represents the class with the lowest value. `recalls` are the averaged recalls per class where the lowest index represents the class with the lowest value. `f1s` are the averaged F1-measures per class where the lowest index represents the class with the lowest value. `average_unpruned_depth` is the average depth of all decision trees (before pruning them) obtained inside the nested cross-validation function. `average_pruned_depth` is the average depth of all pruned decision trees obtained inside the nested cross-validation function.
 
 ```python
 from evaluation import nested_cross_validation
 
-evaluation = nested_cross_validation(x, y)
+evaluation, average_unpruned_depth, average_pruned_depth = nested_cross_validation(x, y)
 
 # Display individual evaluation metrics:
 print(evaluation.confusion_matrix)
@@ -96,6 +96,9 @@ print(evaluation.accuracy)
 print(evaluation.precisions)
 print(evaluation.recalls)
 print(evaluation.f1s)
+
+print(average_unpruned_depth)
+print(average_pruned_depth)
 ```
 
 ## Visualisation
