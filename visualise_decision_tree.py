@@ -5,16 +5,16 @@ from decision_tree import (
     decision_tree_learning,
 )
 from visualisation import plotTree
+import logging
 
 
-def visualise_decision_trees(
+def visualise_decision_tree(
     data_txt_path: str,
     attribute_number: int,
     data_type: str,
 ) -> None:
     """
     Produces a decision tree and creates visual representation of the tree
-    trees the decision tree algorithm both without pruning and with pruning.
     NOTE: This function might take a while to finish.
 
     :param data_txt_path: The file path to the data file. The following data format is assumed:
@@ -34,16 +34,9 @@ def visualise_decision_trees(
     file_name_u = f"{data_type}_unprunned"
     plotTree(decision_tree, file_name_u, depth)
 
-    # Create result text
-    result_text_lines = [
-        "----------------------------------------------------",
-        f"Visualisation file located in figures/",
-        "----------------------------------------------------",
-    ]
-
-    # Output result text
-    for line in result_text_lines:
-        print(line)
+    logging.info(
+        "The visualised tree can be found in 'mldecisiontreecoursework/figures"
+    )
 
 
 def main() -> None:

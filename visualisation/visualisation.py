@@ -37,7 +37,6 @@ def plotNode(
     :param width: max width of tree taking into account size of nodes.
     :return: None.
     """
-    print(x, y, width)
     # Checking to see if leaf node
 
     if Node["is_leaf"]:
@@ -96,7 +95,7 @@ def plotNode(
             joinNodes(x, y, (x + distance), (y - 5), ax)
 
 
-def plotTree(Tree: dict, tree_name: str = "tree", depth: int = 0):
+def plotTree(Tree: dict, tree_name: str = "tree", depth: int = 0) -> None:
     """
     Function that takes the top node of the tree and plots the whole tree
 
@@ -107,6 +106,7 @@ def plotTree(Tree: dict, tree_name: str = "tree", depth: int = 0):
     :result: .png file named tree.png, found in visualisation folder.
     """
     # Using depth of tree to work out maximum width
+    # NOTE: constants obtained via trial and error
     width = (2 ** depth) * 5
 
     # Defining figure information
@@ -120,7 +120,6 @@ def plotTree(Tree: dict, tree_name: str = "tree", depth: int = 0):
 
     y_depth = -depth * 5
 
-    # plt.xlim([width, -width])
     plt.ylim([5, y_depth])
     plt.gca().invert_yaxis()
     ax.axis("off")
